@@ -25,6 +25,8 @@ Add blade templates to `views/blocks` which get and use ACF data. Each template 
   EnqueueStyle:
   EnqueueScript:
   EnqueueAssets:
+  Preview:
+  PreviewImage:
 --}}
 ```
 
@@ -46,6 +48,8 @@ Add blade templates to `views/blocks` which get and use ACF data. Each template 
   EnqueueStyle: styles/style.css
   EnqueueScript: scripts/script.js
   EnqueueAssets: path/to/asset
+  Preview: true
+  PreviewImage: path/to/my/block/preview.jpg
 --}}
 
 <blockquote data-{{ $block['id'] }} class="{{ $block['classes'] }}">
@@ -79,7 +83,9 @@ The options in the file header map to options in the [`acf_register_block_type` 
 | `PostTypes`        | An array of post types to restrict this block type to. Sepearate values with a space. | i.e. `post page` |
 | `SupportsAlign`    | This property adds block controls which allow the user to change the block’s alignment. Set to true to show  all alignments, false to hide the alignment toolbar. Set to an array (strings separated by spaces) of specific alignment names to customize the toolbar. | (boolean) `true`, `false`<br> or (array) `left center right wide full` | _optional_ (defaults to true) |
 | `SupportsMode`     | This property allows the user to toggle between edit and preview modes via a button. | `true`  or `false` |_optional_ (defaults to `true`) |
-| `SupportsMultiple` |This property allows the block to be added multiple times. | `true`  or `false` |_optional_ (defaults to `true`) |
+| `SupportsMultiple` | This property allows the block to be added multiple times. | `true`  or `false` |_optional_ (defaults to `true`) |
+| `Preview`          | Enable block sample preview |
+| `PreviewImage`     | Path to block sample preview image. Relative to theme directory |
 
 ## Creating ACF fields
 Once a block is created you'll be able to assign ACF fields to it using the standard Custom Fields interface in WordPress. We recommend using [sage-advanced-custom-fields](https://github.com/MWDelaney/sage-advanced-custom-fields) to keep your ACF fields in version control with Sage.

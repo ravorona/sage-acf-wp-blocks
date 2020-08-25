@@ -3,13 +3,13 @@
 namespace App;
 
 // Check whether WordPress and ACF are available; bail if not.
-if (! function_exists('acf_register_block_type')) {
+if (!function_exists('acf_register_block_type')) {
     return;
 }
-if (! function_exists('add_filter')) {
+if (!function_exists('add_filter')) {
     return;
 }
-if (! function_exists('add_action')) {
+if (!function_exists('add_action')) {
     return;
 }
 
@@ -31,7 +31,7 @@ add_action('acf/init', function () {
     global $sage_error;
 
     // Get an array of directories containing blocks
-    $directories = apply_filters('sage-acf-gutenberg-blocks-templates', []);
+    $directories = apply_filters('sage-acf-gutenberg-blocks-templates', array());
 
     // Check whether ACF exists before continuing
     foreach ($directories as $dir) {
@@ -55,8 +55,8 @@ add_action('acf/init', function () {
                 }
 
                 // Get header info from the found template file(s)
-                $file_path = locate_template($dir."/${slug}.blade.php");
-                $file_headers = get_file_data($file_path, [
+                $file_path = locate_template($dir . "/${slug}.blade.php");
+                $file_headers = get_file_data($file_path, array(
                     'title' => 'Title',
                     'description' => 'Description',
                     'category' => 'Category',
@@ -69,10 +69,12 @@ add_action('acf/init', function () {
                     'supports_anchor' => 'SupportsAnchor',
                     'supports_mode' => 'SupportsMode',
                     'supports_multiple' => 'SupportsMultiple',
-                    'enqueue_style'     => 'EnqueueStyle',
-                    'enqueue_script'    => 'EnqueueScript',
-                    'enqueue_assets'    => 'EnqueueAssets',
-                ]);
+                    'enqueue_style' => 'EnqueueStyle',
+                    'enqueue_script' => 'EnqueueScript',
+                    'enqueue_assets' => 'EnqueueAssets',
+                    'preview' => 'Preview',
+                    'preview_image' => 'PreviewImage'
+                ));
 
                 if (empty($file_headers['title'])) {
                     $sage_error(__('This block needs a title: ' . $dir . '/' . $template->getFilename(), 'sage'), __('Block title missing', 'sage'));
@@ -92,7 +94,7 @@ add_action('acf/init', function () {
                 }
 
                 // Set up block data for registration
-                $data = [
+                $data = array(
                     'name' => $slug,
                     'title' => $file_headers['title'],
                     'description' => $file_headers['description'],
@@ -101,11 +103,24 @@ add_action('acf/init', function () {
                     'keywords' => explode(' ', $file_headers['keywords']),
                     'mode' => $file_headers['mode'],
                     'align' => $file_headers['align'],
-                    'render_callback'  => __NAMESPACE__.'\\sage_blocks_callback',
-                    'enqueue_style'   => $file_headers['enqueue_style'],
-                    'enqueue_script'  => $file_headers['enqueue_script'],
-                    'enqueue_assets'  => $file_headers['enqueue_assets'],
-                ];
+                    'render_callback' => __NAMESPACE__ . '\\sage_blocks_callback',
+                    'enqueue_style' => $file_headers['enqueue_style'],
+                    'enqueue_script' => $file_headers['enqueue_script'],
+                    'enqueue_assets' => $file_headers['enqueue_assets'],
+                );
+
+                // If the PostTypes header is set in the template, restrict this block to those types
+                if (!empty($file_headers['preview'])) {
+                    $data['example'] = array(
+                        'attributes' => array(
+                            'mode' => 'preview',
+                            'data' => array(
+                                'is_example' => true,
+                                'media' => $file_headers['preview_image']
+                            )
+                        )
+                    );
+                }
 
                 // If the PostTypes header is set in the template, restrict this block to those types
                 if (!empty($file_headers['post_types'])) {
@@ -133,7 +148,7 @@ add_action('acf/init', function () {
                 }
 
                 // Register the block with ACF
-                \acf_register_block_type( apply_filters( "sage/blocks/$slug/register-data", $data ) );
+                \acf_register_block_type($data);
             }
         }
     }
@@ -144,10 +159,9 @@ add_action('acf/init', function () {
  */
 function sage_blocks_callback($block, $content = '', $is_preview = false, $post_id = 0)
 {
-
     // Set up the slug to be useful
-    $slug  = str_replace('acf/', '', $block['name']);
-    $block = array_merge(['className' => ''], $block);
+    $slug = str_replace('acf/', '', $block['name']);
+    $block = array_merge(array('className' => ''), $block);
 
     // Set up the block data
     $block['post_id'] = $post_id;
@@ -156,12 +170,12 @@ function sage_blocks_callback($block, $content = '', $is_preview = false, $post_
     $block['slug'] = $slug;
     $block['anchor'] = isset($block['anchor']) ? $block['anchor'] : '';
     // Send classes as array to filter for easy manipulation.
-    $block['classes'] = [
+    $block['classes'] = array(
         $slug,
         $block['className'],
         $block['is_preview'] ? 'is-preview' : null,
-        'align'.$block['align']
-    ];
+        'align' . $block['align']
+    );
 
     // Filter the block data.
     $block = apply_filters("sage/blocks/$slug/data", $block);
@@ -169,13 +183,18 @@ function sage_blocks_callback($block, $content = '', $is_preview = false, $post_
     // Join up the classes.
     $block['classes'] = implode(' ', array_filter($block['classes']));
 
-    if (isSage10()) {
+    if (get_field('is_example') && get_field('media')) {
+        // Display image in block preview sample
+        $template = '<img style="width: 100%;" src="' . get_theme_file_uri() . '/' . get_field('media') . '" alt="Block preview">';
+    } else if (isSage10()) {
         // Use Sage's view() function to echo the block and populate it with data
-        echo \Roots\view("blocks/${slug}", ['block' => $block]);
+        $template = \Roots\view("blocks/${slug}", array('block' => $block));
     } else {
         // Use Sage 9's template() function to echo the block and populate it with data
-        echo \App\template("blocks/${slug}", ['block' => $block]);
+        $template = \App\template("blocks/${slug}", array('block' => $block));
     }
+
+    echo $template;
 }
 
 /**
@@ -185,7 +204,7 @@ function removeBladeExtension($filename)
 {
     // Filename must end with ".blade.php". Parenthetical captures the slug.
     $blade_pattern = '/(.*)\.blade\.php$/';
-    $matches = [];
+    $matches = array();
     // If the filename matches the pattern, return the slug.
     if (preg_match($blade_pattern, $filename, $matches)) {
         return $matches[1];

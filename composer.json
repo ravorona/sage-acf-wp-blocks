@@ -1,8 +1,8 @@
 {
-  "name": "mwdelaney/sage-acf-gutenberg-blocks",
-  "description": "Create Gutenberg blocks from Sage blade templates and ACF fields.",
+  "name": "ravorona/sage-acf-gutenberg-blocks",
+  "description": "Create Gutenberg blocks from Sage blade templates and ACF fields. Fork of https://github.com/MWDelaney/sage-acf-wp-blocks",
   "keywords": ["wordpress", "gutenberg", "advanced custom fields"],
-  "homepage": "https://github.com/MWDelaney/sage-acf-gutenberg-blocks",
+  "homepage": "https://github.com/ravorona/sage-acf-gutenberg-blocks",
   "license": "MIT",
   "authors": [
     {
@@ -11,7 +11,11 @@
     },
     {
       "name": "Nico Prat"
-		}
+    },
+    {
+      "name": "Ravorona",
+      "email": "h.rakotonjanahary@gmail.com"
+    }
   ],
   "require": {
     "php": ">=5.3.2"
